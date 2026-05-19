@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Log Analyzer - Cyber Security Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sol Menü / Kontrol Paneli -->
+        <aside class="sidebar">
+            <h2>🛡️ SOC Analyzer</h2>
+            <p class="subtitle">Yerel Log Analiz Aracı</p>
+            <div class="upload-section">
+                <label for="logFile" class="file-label">📂 Log Dosyası Yükle</label>
+                <input type="file" id="logFile" accept=".log,.txt">
+            </div>
+            <div class="info-box">
+                <small>⚠️ Verileriniz tamamen tarayıcınızda işlenir, hiçbir sunucuya yüklenmez.</small>
+            </div>
+        </aside>
+
+        <!-- Sağ Taraf / Metrikler ve Sonuçlar -->
+        <main class="dashboard">
+            <!-- Özet Kartları -->
+            <section class="metrics-grid">
+                <div class="card border-blue">
+                    <h3>Toplam Satır</h3>
+                    <p id="totalLines">0</p>
+                </div>
+                <div class="card border-red">
+                    <h3>Kritik Hatalar (HATA/FAIL)</h3>
+                    <p id="criticalErrors">0</p>
+                </div>
+                <div class="card border-yellow">
+                    <h3>Şüpheli IP Sayısı</h3>
+                    <p id="suspiciousIPs">0</p>
+                </div>
+            </section>
+
+            <!-- Detaylı Analiz Tabloları -->
+            <section class="results-section">
+                <div class="table-container">
+                    <h3>🚨 Tespit Edilen Şüpheli IP Adresleri</h3>
+                    <table id="ipTable">
+                        <thead>
+                            <tr>
+                                <th>IP Adresi</th>
+                                <th>İstek Sayısı</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="3" class="empty">Henüz dosya yüklenmedi.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-container">
+                    <h3>🔍 Kritik Olay Günlükleri</h3>
+                    <div id="logConsole" class="console">
+                        <!-- Log satırları buraya akacak -->
+                        [Sistem]: Dosya bekleniyor...
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+  </html>
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --neon-blue: #38bdf8;
+    --neon-red: #ef4444;
+    --neon-yellow: #f59e0b;
+    --neon-green: #10b981;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace; /* Siber güvenlik havası için fiks font */
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 300px;
+    background-color: #0b0f19;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: 1px solid #334155;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.file-label {
+    display: block;
+    background-color: var(--neon-blue);
+    color: #000;
+    text-align: center;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.file-label:hover {
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+#logFile { display: none; }
+
+.info-box {
+    margin-top: auto;
+    background: #1e293b;
+    padding: 10px;
+    border-left: 3px solid var(--neon-yellow);
+    font-size: 11px;
+}
+
+/* Dashboard Alanı */
+.dashboard {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.card h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
+.card p { font-size: 28px; font-weight: bold; }
+
+.border-blue { border-top: 4px solid var(--neon-blue); }
+.border-red { border-top: 4px solid var(--neon-red); color: var(--neon-red); }
+.border-yellow { border-top: 4px solid var(--neon-yellow); }
+
+/* Sonuçlar */
+.results-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    height: 500px;
+}
+
+.table-container {
+    background-color: var(--bg-card);
+    padding: 20px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+th, td { padding: 10px; border-bottom: 1px solid #334155; }
+th { color: var(--text-muted); }
+
+.badge-alert { background: #7f1d1d; color: var(--neon-red); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+.empty { text-align: center; color: var(--text-muted); padding: 4px; }
+
+/* Konsol Görünümü */
+.console {
+    background-color: #090d16;
+    flex: 1;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    overflow-y: auto;
+    color: var(--neon-green);
+    line-height: 1.6;
+    white-spdocument.getElementById('logFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        processLogs(text);
+    };
+    reader.readAsText(file);
+});
+
+function processLogs(logText) {
+    const lines = logText.split('\n');
+    let totalLines = lines.length;
+    let criticalErrors = 0;
+    
+    // IP adreslerini ve frekanslarını tutacak obje
+    const ipCounts = {};
+    const criticalLogs = [];
+
+    // Gelişmiş Regex (Log içindeki IP adreslerini bulmak için)
+    const ipRegex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
+
+    lines.forEach(line => {
+        if (!line.trim()) return;
+
+        // 1. Kritik Hata Analizi (ERROR, FAIL, 401, 403, 500 gibi ibareler)
+        if (line.toUpperCase().includes('ERROR') || line.toUpperCase().includes('FAIL') || line.includes(' 403 ') || line.includes(' 401 ')) {
+            criticalErrors++;
+            if (criticalLogs.length < 50) { // Konsolu şişirmemek için ilk 50 kritik hatayı alalım
+                criticalLogs.push(line);
+            }
+        }
+
+        // 2. IP Adresi Tespiti
+        const match = line.match(ipRegex);
+        if (match) {
+            const ip = match[0];
+            ipCounts[ip] = (ipCounts[ip] || 0) + 1;
+        }
+    });
+
+    // Araç içi veri filtreleme: Bir IP 5'ten fazla istek attıysa şüpheli kabul et
+    const suspiciousIPList = Object.entries(ipCounts).filter(([ip, count]) => count > 5);
+
+    // Arayüzü Güncelleme (DOM Manipülasyonu)
+    document.getElementById('totalLines').innerText = totalLines.toLocaleString();
+    document.getElementById('criticalErrors').innerText = criticalErrors.toLocaleString();
+    document.getElementById('suspiciousIPs').innerText = suspiciousIPList.length;
+
+    // Konsolu Güncelleme
+    const consoleDiv = document.getElementById('logConsole');
+    if (criticalLogs.length > 0) {
+        consoleDiv.innerHTML = criticalLogs.map(log => `[KRİTİK]: ${log}`).join('\n');
+        consoleDiv.style.color = '#ef4444'; // Yazıları kırmızı yap
+    } else {
+        consoleDiv.innerHTML = "[Sistem]: Tarama tamamlandı. Kritik bir siber olay tespit edilmedi.";
+        consoleDiv.style.color = '#10b981'; // Yazıları yeşil yap
+    }
+
+    // IP Tablosunu Güncelleme
+    const tbody = document.querySelector('#ipTable tbody');
+    tbody.innerHTML = '';
+
+    if (suspiciousIPList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">Şüpheli IP trafiği tespit edilmedi.</td></tr>';
+    } else {
+        // En çok istek atana göre sırala
+        suspiciousIPList.sort((a, b) => b[1] - a[1]);
+
+        suspiciousIPList.forEach(([ip, count]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${ip}</td>
+                <td>${count} kez</td>
+                <td><span class="badge-alert">Yüksek Trafik</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+              ace: pre-wrap;
+}
+
